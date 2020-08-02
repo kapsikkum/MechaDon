@@ -1,0 +1,11 @@
+discord.py
+aiohttp
+aiofiles
+aiosqlite
+inflect
+humanize
+youtube_dl
+pydub
+html2text
+python-dateutil
+discord-flags
