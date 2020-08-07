@@ -233,5 +233,5 @@ class Advanced_Commands(commands.Cog):
                 await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Owner: {user.name}#{user.discriminator} ({user.id})", color=0xff0000))
         else:
             tag_content = await core.utils.get_tag(string[0])
-            await ctx.send(tag_content)
+            await ctx.send(tag_content.replace("@everyone", "@nobody").replace("@here", "@there"))
         
