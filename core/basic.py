@@ -24,9 +24,9 @@ class Basic_Commands(commands.Cog):
     async def help(self, ctx, cmd=None):
         if cmd is None:
             if ctx.message.guild is not None:
-                embed = discord.Embed(title="Bot Commands", description=f"Prefix for this server is {core.utils.prefix_for(ctx.message.guild)}\nUse {core.utils.prefix_for(ctx.message.guild)}help <command> for more info.", color=0xff0000)
+                embed = discord.Embed(title="Bot Commands", description=f"Prefix for this server is {core.utils.prefix_for(ctx.message.guild)}\nUse {core.utils.prefix_for(ctx.message.guild)}help <command> for more info.\nBot Version: {core.__version__}", color=0xff0000)
             else:
-                embed = discord.Embed(title="Bot Commands", description=f"Prefix is {core.prefix}\nUse {core.prefix}help <command> for more info.", color=0xff0000)
+                embed = discord.Embed(title="Bot Commands", description=f"Prefix is {core.prefix}\nUse {core.prefix}help <command> for more info.\nBot Version: {core.__version__}", color=0xff0000)
             categories = dict()
             for command in self.bot.commands:
                 if command.hidden:
@@ -221,7 +221,8 @@ class Basic_Commands(commands.Cog):
         embed = discord.Embed(title="Bot Info",  description=f"Member of **{len(self.bot.guilds)}** Guild(s)", color=0xff0000)
         embed.add_field(name="**Bot Version**", value=core.__version__, inline=False)
         embed.add_field(name="**Uptime**", value=timedelta(seconds=int(time.time()) - int(core.uptime)), inline=False)
-        embed.add_field(name="**Prefix for guild**", value=core.utils.prefix_for(ctx.message.guild), inline=False)
+        try: embed.add_field(name="**Prefix for guild**", value=core.utils.prefix_for(ctx.message.guild), inline=False)
+        except: pass
         await ctx.send(embed=embed)
 
     @commands.command(hidden=True)

@@ -7,7 +7,7 @@ import time
 
 import discord
 
-__version_info__ = (2, 10, 4)
+__version_info__ = (2, 10, 5)
 __version__ = '.'.join(map(str, __version_info__))
 config = json.load(open("config.json"))
 token = config['token']

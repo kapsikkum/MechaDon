@@ -29,8 +29,7 @@ def get_prefix(bot, message):
         return commands.when_mentioned_or(core.prefix)(bot, message)
 
 
-bot = commands.AutoShardedBot(command_prefix=get_prefix)
-bot.remove_command("help")
+bot = commands.AutoShardedBot(command_prefix=get_prefix, help_command=None)
 
 
 @bot.event
@@ -210,5 +209,5 @@ bot.add_cog(admin.Admin_Commands(bot))
 bot.add_cog(files.File_Commands(bot))
 bot.add_cog(audio.Audio_Commands(bot))
 bot.add_cog(nsfw.NSFW_Commands(bot))
-bot.loop.create_task(core.utils.message_logger())
+# bot.loop.create_task(core.utils.message_logger())
 bot.run(core.token)

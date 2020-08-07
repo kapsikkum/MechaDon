@@ -82,8 +82,7 @@ class Admin_Commands(commands.Cog):
 
     @commands.command(description="Clears the specified amount of messages in a channel.", usage="{prefix}clear <amount>", hidden=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
-    @commands.has_permissions(administrator=True)
-    @commands.is_owner()
+    @commands.has_permissions(manage_messages=True)
     @commands.guild_only()
     async def clear(self, ctx, limit: int):
         try:
@@ -96,6 +95,7 @@ class Admin_Commands(commands.Cog):
 
     @commands.command(description="Kick a user. (Admin Only)", usage="{prefix}kick @user <optional reason>")
     @commands.guild_only()
+    @commands.has_permissions(kick_members=True)
     @commands.cooldown(1, 1, commands.BucketType.user)
     async def kick(self, ctx, member: discord.Member = None, *, reason=None):
         if member.id == self.bot.user.id:
@@ -106,6 +106,7 @@ class Admin_Commands(commands.Cog):
 
     @commands.command(description="Ban a user. (Admin Only)", usage="{prefix}ban @user <optional reason>")
     @commands.guild_only()
+    @commands.has_permissions(ban_members=True)
     @commands.cooldown(1, 1, commands.BucketType.user)
     async def ban(self, ctx, member: discord.Member = None, *, reason=None):
         if member.id == self.bot.user.id:

@@ -7,13 +7,13 @@ import re
 import secrets
 import string
 import threading
+import traceback
 
 import aiohttp
 import aiosqlite
 import discord
 import humanize
 import inflect
-import traceback
 from discord.ext import commands
 
 import core
@@ -153,12 +153,13 @@ async def check_db():
     async with aiosqlite.connect("core/database.db") as db:
         await db.execute('CREATE TABLE IF NOT EXISTS "Currency" ("id" INTEGER, "cash" FLOAT, "owned" TEXT);')
         await db.execute('CREATE TABLE IF NOT EXISTS "Catalog" ("name" TEXT, "nsfw" INTEGER, "catalog" TEXT);')
+        await db.execute('CREATE TABLE IF NOT EXISTS "Tags" ("name" TEXT, "content" TEXT, "owner_id" INTEGER);')
         await db.commit()
         await db.execute('CREATE INDEX IF NOT EXISTS "Currency_Index" ON "Currency"("id");')
         await db.execute('CREATE INDEX IF NOT EXISTS "Catalog_Index" ON "Catalog"("name");')
+        await db.execute('CREATE INDEX IF NOT EXISTS "Tag_Index" ON "Tags"("name");')
         await db.commit()
     
-
 
 async def add_user(user_id):
     async with aiosqlite.connect("core/database.db") as db:
@@ -233,6 +234,65 @@ async def add_item(user_id, item, item_name):
     return item
 
 
+async def add_tag(tag_name, tag_content, user_id):
+    async with aiosqlite.connect("core/database.db") as db:
+        async with db.execute('SELECT * FROM Tags WHERE name=?', parameters=(tag_name,)) as cursor:
+            row = await cursor.fetchall()
+        if len(row) == 0:
+            await db.execute('INSERT INTO "Tags" VALUES (?, ?, ?)', parameters=(tag_name, tag_content, user_id))
+            await db.commit()
+        else:
+            raise core.exceptions.CommandError("Tag already exists!")
+
+
+async def edit_tag(tag_name, tag_content, user_id):
+    async with aiosqlite.connect("core/database.db") as db:
+        async with db.execute('SELECT owner_id FROM Tags WHERE name=?', parameters=(tag_name,)) as cursor:
+            row = await cursor.fetchall()
+        if len(row) != 0:
+            if row[0][0] == user_id or user_id == core.owner_id:
+                await db.execute("UPDATE Tags SET content=? WHERE name=?", parameters=(tag_content, tag_name))
+                await db.commit()
+            else:
+                raise core.exceptions.CommandError("You do not own this tag!")
+        else:
+            raise core.exceptions.CommandError("Tag does not exist!")
+
+
+async def remove_tag(tag_name, tag_content, user_id):
+    async with aiosqlite.connect("core/database.db") as db:
+        async with db.execute('SELECT owner_id FROM Tags WHERE name=?', parameters=(tag_name,)) as cursor:
+            row = await cursor.fetchall()
+        if len(row) != 0:
+            if row[0][0] == user_id or user_id == core.owner_id:
+                await db.execute("DELETE FROM tags WHERE name=?", parameters=(tag_name,))
+                await db.commit()
+            else:
+                raise core.exceptions.CommandError("You do not own this tag!")
+        else:
+            raise core.exceptions.CommandError("Tag does not exist!")
+
+
+async def get_tag_owner(tag_name):
+    async with aiosqlite.connect("core/database.db") as db:
+        async with db.execute('SELECT owner_id FROM Tags WHERE name=?', parameters=(tag_name,)) as cursor:
+            row = await cursor.fetchall()
+        if len(row) != 0:
+            return row[0][0]
+        else:
+            raise core.exceptions.CommandError("Tag does not exist!")
+
+
+async def get_tag(tag_name):
+    async with aiosqlite.connect("core/database.db") as db:
+        async with db.execute('SELECT content FROM Tags WHERE name=?', parameters=(tag_name,)) as cursor:
+            row = await cursor.fetchall()
+        if len(row) != 0:
+            return row[0][0]
+        else:
+            raise core.exceptions.CommandError("Tag does not exist!")
+
+
 async def purchase_item(user_id, catalog, item):
     try:
         item_name = item
@@ -304,6 +364,7 @@ async def message_logger():
             except Exception as e:
                 core.logger.error(str(e))
                 pass
+
 
 def check_flags(string):
     from_reg = r"(--from|-f) (\w{1,})"

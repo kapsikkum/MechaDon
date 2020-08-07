@@ -141,7 +141,6 @@ class File_Commands(commands.Cog):
                     else:
                         raise core.exceptions.CommandError(f"API error {r.status}")
 
-
     @commands.command(description="Expand Dong", usage="{prefix}bonzi <text>")
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def bonzi(self, ctx, *, args):
@@ -161,3 +160,26 @@ class File_Commands(commands.Cog):
                             await ctx.send(file=discord.File(f'{tempdir}/{ctx.message.author.id}.mp3', filename=f'{ctx.message.author.id}.mp3'))
                     else:
                         raise core.exceptions.CommandError(f"API error {r.status}")
+    
+    @commands.command(description="DUKI NUKI", usage="{prefix}duki <text>", aliases=['dukinuki'])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def duki(self, ctx, *, args):
+        params = {
+            "text": "".join(list(args)).replace('"', '').replace("'", ""),
+            "enc": "mpeg",
+            "lang": "pt",
+            "speed": "0.4",
+            "client": "lr-language-tts",
+            "use_google_only_voices": 1
+        }
+        async with ctx.typing():
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://www.google.com/speech-api/v1/synthesize", params=params) as r:
+                    if r.status == 200:
+                        with tempfile.TemporaryDirectory() as tempdir:
+                            async with aiofiles.open(f'{tempdir}/{ctx.message.author.id}.mp3', mode='wb') as f:
+                                await f.write(await r.read())
+                            await ctx.send(file=discord.File(f'{tempdir}/{ctx.message.author.id}.mp3', filename=f'{ctx.message.author.id}.mp3'))
+                    else:
+                        raise core.exceptions.CommandError(
+                            f"API error {r.status}")

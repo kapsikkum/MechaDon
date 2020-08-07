@@ -113,8 +113,8 @@ class Advanced_Commands(commands.Cog):
     @commands.command(hidden=True, description="Make Messages never get deleted.")
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.guild_only()
-    @commands.is_owner()
-    @commands.has_permissions(manage_messages=True)
+    # @commands.is_owner()
+    @commands.has_permissions(administrator=True)
     async def nodelete(self, ctx, all=None):
         if all == "all":
             on = 0
@@ -194,3 +194,44 @@ class Advanced_Commands(commands.Cog):
     async def lan(self, ctx):
         await ctx.send(embed=discord.Embed(title="Supported Translate Languages", description=',\n'.join(f"{core.langs[l]} (`{l}`)" for l in core.langs), color=0xff0000))
 
+
+    @commands.command(description="Create a public tag.", usage="{prefix}tag add|remove|edit|owner|tag to view", aliases=['t'])
+    @commands.cooldown(1, 1, commands.BucketType.channel)
+    async def tag(self, ctx, *string):
+        string = list(string)
+        if len(string) == 0:
+            raise core.exceptions.CommandError("No Command or tag given.")
+        if string[0] == "add":
+            try: tag_name = string[1]
+            except: raise core.exceptions.CommandError("You did not specify a tag!")
+            else:
+                string.remove("add")
+                string.remove(tag_name)
+                await core.utils.add_tag(tag_name, " ".join(string), ctx.author.id)
+                await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Added tag **\"{tag_name}\"**.", color=0xff0000))
+        elif string[0] == "remove":
+            try: tag_name = string[1]
+            except: raise core.exceptions.CommandError("You did not specify a tag!")
+            else:
+                string.remove("remove")
+                string.remove(tag_name)
+                await core.utils.remove_tag(tag_name, " ".join(string), ctx.author.id)
+                await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Removed tag **\"{tag_name}\"**.", color=0xff0000))
+        elif string[0] == "edit":
+            try: tag_name = string[1]
+            except: raise core.exceptions.CommandError("You did not specify a tag!")
+            else:
+                string.remove("edit")
+                string.remove(tag_name)
+                await core.utils.edit_tag(tag_name, " ".join(string), ctx.author.id)
+                await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Edited tag **\"{tag_name}\"**.", color=0xff0000))
+        elif string[0] == "owner":
+            try: tag_name = string[1]
+            except: raise core.exceptions.CommandError("You did not specify a tag!")
+            else:
+                user = await self.bot.fetch_user(await core.utils.get_tag_owner(tag_name))
+                await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Owner: {user.name}#{user.discriminator} ({user.id})", color=0xff0000))
+        else:
+            tag_content = await core.utils.get_tag(string[0])
+            await ctx.send(tag_content)
+        
