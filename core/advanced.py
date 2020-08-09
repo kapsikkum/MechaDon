@@ -9,6 +9,7 @@ import aiohttp
 import discord
 import html2text
 from discord.ext import commands
+from disputils import BotEmbedPaginator
 
 import core
 import core.exceptions
@@ -171,7 +172,7 @@ class Advanced_Commands(commands.Cog):
                             await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=partition, color=0xff0000))
 
     @commands.command(description="Translate a message.", usage="{prefix}translate --from/-f <optional (default auto-detect)> --to/-t <optional (default english)> <text to translate>\n Type `{prefix}langs` for all supported languages.", aliases=['tr'])
-    @commands.cooldown(1, 10, commands.BucketType.member)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def translate(self, ctx, *, text):
         data = core.utils.check_flags(''.join(text))
         async with ctx.typing():
@@ -194,44 +195,75 @@ class Advanced_Commands(commands.Cog):
     async def lan(self, ctx):
         await ctx.send(embed=discord.Embed(title="Supported Translate Languages", description=',\n'.join(f"{core.langs[l]} (`{l}`)" for l in core.langs), color=0xff0000))
 
-
-    @commands.command(description="Create a public tag.", usage="{prefix}tag add|remove|edit|owner|tag to view", aliases=['t'])
-    @commands.cooldown(1, 1, commands.BucketType.channel)
-    async def tag(self, ctx, *string):
-        string = list(string)
-        if len(string) == 0:
+    @commands.group(description="Create a public tag.", usage="{prefix}tag add|remove|edit|owner|tag to view", aliases=['t', 'tags'], invoke_without_command=True)
+    @commands.cooldown(1, 1, commands.BucketType.user)
+    async def tag(self, ctx, tag=None):
+        if tag is None:
             raise core.exceptions.CommandError("No Command or tag given.")
-        if string[0] == "add":
-            try: tag_name = string[1]
-            except: raise core.exceptions.CommandError("You did not specify a tag!")
+        tag_content = await core.utils.get_tag(tag)
+        await ctx.send(tag_content.replace("@everyone", "@nobody").replace("@here", "@there"))
+    
+    @tag.command()
+    @commands.cooldown(2, 3, commands.BucketType.user)
+    async def add(self, ctx, tag=None, *, string=None):
+        if tag is None:
+            raise core.exceptions.CommandError("You did not specify a tag!")
+        if string is None:
+            raise core.exceptions.CommandError("You did not specify any content!")
+        await core.utils.add_tag(tag, string, ctx.author.id)
+        await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Added tag **\"{tag}\"**.", color=0xff0000))
+
+    @tag.command()
+    @commands.cooldown(2, 3, commands.BucketType.user)
+    async def remove(self, ctx, tag=None):
+        if tag is None:
+            raise core.exceptions.CommandError("You did not specify a tag!")
+        await core.utils.remove_tag(tag, ctx.author.id)
+        await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Removed tag **\"{tag}\"**.", color=0xff0000))
+
+    @tag.command()
+    @commands.cooldown(2, 3, commands.BucketType.user)
+    async def edit(self, ctx, tag=None, *, string=None):
+        if tag is None:
+            raise core.exceptions.CommandError("You did not specify a tag!")
+        if string is None:
+            raise core.exceptions.CommandError("You did not specify any content!")
+        await core.utils.edit_tag(tag, string, ctx.author.id)
+        await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Edited tag **\"{tag}\"**.", color=0xff0000))
+    
+    @tag.command()
+    @commands.cooldown(2, 3, commands.BucketType.user)
+    async def owner(self, ctx, tag=None):
+        if tag is None:
+            raise core.exceptions.CommandError("You did not specify a tag!")
+        user = await self.bot.fetch_user(await core.utils.get_tag_owner(tag))
+        await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Owner: {user.name}#{user.discriminator} ({user.id})", color=0xff0000))
+
+    @tag.command(name="list")
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def _list(self, ctx, user: discord.User = None):
+        if user is None:
+            user = ctx.author
+        embeds = list()
+        string = str()
+        count = 0
+        tags = await core.utils.list_user_tags(user.id)
+        if len(tags) == 0:
+            if user.id == ctx.author.id:
+                raise core.exceptions.CommandError("You do not own any tags!")
             else:
-                string.remove("add")
-                string.remove(tag_name)
-                await core.utils.add_tag(tag_name, " ".join(string), ctx.author.id)
-                await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Added tag **\"{tag_name}\"**.", color=0xff0000))
-        elif string[0] == "remove":
-            try: tag_name = string[1]
-            except: raise core.exceptions.CommandError("You did not specify a tag!")
-            else:
-                string.remove("remove")
-                string.remove(tag_name)
-                await core.utils.remove_tag(tag_name, " ".join(string), ctx.author.id)
-                await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Removed tag **\"{tag_name}\"**.", color=0xff0000))
-        elif string[0] == "edit":
-            try: tag_name = string[1]
-            except: raise core.exceptions.CommandError("You did not specify a tag!")
-            else:
-                string.remove("edit")
-                string.remove(tag_name)
-                await core.utils.edit_tag(tag_name, " ".join(string), ctx.author.id)
-                await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Edited tag **\"{tag_name}\"**.", color=0xff0000))
-        elif string[0] == "owner":
-            try: tag_name = string[1]
-            except: raise core.exceptions.CommandError("You did not specify a tag!")
-            else:
-                user = await self.bot.fetch_user(await core.utils.get_tag_owner(tag_name))
-                await ctx.send(embed=discord.Embed(title=discord.Embed.Empty, description=f"Owner: {user.name}#{user.discriminator} ({user.id})", color=0xff0000))
-        else:
-            tag_content = await core.utils.get_tag(string[0])
-            await ctx.send(tag_content.replace("@everyone", "@nobody").replace("@here", "@there"))
-        
+                raise core.exceptions.CommandError("They do not own any tags!")
+        for tag in tags:
+            string += f"""{tags.index(tag) + 1}. **"{tag[0][:35]}{("..." if len(tag[0][:35]) < len(tag[0]) else "")}"**\n"""
+            count += 1
+            if count == 20:
+                embeds.append(discord.Embed(title=f"Tags for {user.name}",  description=string, color=0xff0000))
+                count = 0
+                string = str()
+        if count > 0:
+            embeds.append(discord.Embed(title=f"Tags for {user.name}",  description=string, color=0xff0000))
+            count = 0
+            string = str()
+
+        paginator = BotEmbedPaginator(ctx, embeds)
+        await paginator.run()

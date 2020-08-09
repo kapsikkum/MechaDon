@@ -8,4 +8,4 @@ youtube_dl
 pydub
 html2text
 python-dateutil
-discord-flags
+disputils

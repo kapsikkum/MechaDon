@@ -236,7 +236,7 @@ async def add_item(user_id, item, item_name):
 
 async def add_tag(tag_name, tag_content, user_id):
     async with aiosqlite.connect("core/database.db") as db:
-        async with db.execute('SELECT * FROM Tags WHERE name=?', parameters=(tag_name,)) as cursor:
+        async with db.execute('SELECT * FROM Tags WHERE name=? COLLATE NOCASE', parameters=(tag_name,)) as cursor:
             row = await cursor.fetchall()
         if len(row) == 0:
             await db.execute('INSERT INTO "Tags" VALUES (?, ?, ?)', parameters=(tag_name, tag_content, user_id))
@@ -247,11 +247,11 @@ async def add_tag(tag_name, tag_content, user_id):
 
 async def edit_tag(tag_name, tag_content, user_id):
     async with aiosqlite.connect("core/database.db") as db:
-        async with db.execute('SELECT owner_id FROM Tags WHERE name=?', parameters=(tag_name,)) as cursor:
+        async with db.execute('SELECT owner_id FROM Tags WHERE name=? COLLATE NOCASE', parameters=(tag_name,)) as cursor:
             row = await cursor.fetchall()
         if len(row) != 0:
             if row[0][0] == user_id or user_id == core.owner_id:
-                await db.execute("UPDATE Tags SET content=? WHERE name=?", parameters=(tag_content, tag_name))
+                await db.execute("UPDATE Tags SET content=? WHERE name=? COLLATE NOCASE", parameters=(tag_content, tag_name))
                 await db.commit()
             else:
                 raise core.exceptions.CommandError("You do not own this tag!")
@@ -259,13 +259,13 @@ async def edit_tag(tag_name, tag_content, user_id):
             raise core.exceptions.CommandError("Tag does not exist!")
 
 
-async def remove_tag(tag_name, tag_content, user_id):
+async def remove_tag(tag_name, user_id):
     async with aiosqlite.connect("core/database.db") as db:
-        async with db.execute('SELECT owner_id FROM Tags WHERE name=?', parameters=(tag_name,)) as cursor:
+        async with db.execute('SELECT owner_id FROM Tags WHERE name=? COLLATE NOCASE', parameters=(tag_name,)) as cursor:
             row = await cursor.fetchall()
         if len(row) != 0:
             if row[0][0] == user_id or user_id == core.owner_id:
-                await db.execute("DELETE FROM tags WHERE name=?", parameters=(tag_name,))
+                await db.execute("DELETE FROM tags WHERE name=? COLLATE NOCASE", parameters=(tag_name,))
                 await db.commit()
             else:
                 raise core.exceptions.CommandError("You do not own this tag!")
@@ -275,7 +275,7 @@ async def remove_tag(tag_name, tag_content, user_id):
 
 async def get_tag_owner(tag_name):
     async with aiosqlite.connect("core/database.db") as db:
-        async with db.execute('SELECT owner_id FROM Tags WHERE name=?', parameters=(tag_name,)) as cursor:
+        async with db.execute('SELECT owner_id FROM Tags WHERE name=? COLLATE NOCASE', parameters=(tag_name,)) as cursor:
             row = await cursor.fetchall()
         if len(row) != 0:
             return row[0][0]
@@ -285,12 +285,19 @@ async def get_tag_owner(tag_name):
 
 async def get_tag(tag_name):
     async with aiosqlite.connect("core/database.db") as db:
-        async with db.execute('SELECT content FROM Tags WHERE name=?', parameters=(tag_name,)) as cursor:
+        async with db.execute('SELECT content FROM Tags WHERE name=? COLLATE NOCASE', parameters=(tag_name,)) as cursor:
             row = await cursor.fetchall()
         if len(row) != 0:
             return row[0][0]
         else:
             raise core.exceptions.CommandError("Tag does not exist!")
+
+
+async def list_user_tags(user_id):
+    async with aiosqlite.connect("core/database.db") as db:
+        async with db.execute('SELECT name FROM Tags WHERE owner_id=?', parameters=(user_id,)) as cursor:
+            rows = await cursor.fetchall()
+        return rows
 
 
 async def purchase_item(user_id, catalog, item):
