@@ -201,7 +201,7 @@ class Advanced_Commands(commands.Cog):
         if tag is None:
             raise core.exceptions.CommandError("No Command or tag given.")
         tag_content = await core.utils.get_tag(tag)
-        await ctx.send(tag_content.replace("@everyone", "@nobody").replace("@here", "@there"))
+        await ctx.send(tag_content.replace("@everyone", "@nobody").replace("@here", "@there").format(user=ctx.author))
     
     @tag.command()
     @commands.cooldown(2, 3, commands.BucketType.user)
