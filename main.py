@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# @Author: Blakeando
+# @Date:   2020-08-13 14:22:49
+# @Last Modified by:   Blakeando
+# @Last Modified time: 2020-08-13 14:22:53
 import asyncio
 import datetime as dt
 import json
@@ -35,7 +40,11 @@ bot = commands.AutoShardedBot(command_prefix=get_prefix, help_command=None)
 @bot.event
 async def on_ready():
     if not core.started:
-        await bot.change_presence(activity=discord.Activity(name='and Looking 👀', type=discord.ActivityType.watching))
+        await bot.change_presence(
+            activity=discord.Activity(
+                name="and Looking 👀", type=discord.ActivityType.watching
+            )
+        )
         core.started = True
         core.logger.info("Changed Status.")
     botinfo = await bot.application_info()
@@ -44,7 +53,22 @@ async def on_ready():
     core.logger.info("Checking Database")
     await core.utils.check_db()
     if not "general" in list(await core.utils.shop_catalog()):
-        await core.utils.shop_catalog(catalog="general", nsfw=False, content={"Burger": {"name": "Burger","type": "text","product": "\ud83c\udf54","price": 5.6,"quantity": 25,"permanent": False,"nsfw": False}}, mode="c")
+        await core.utils.shop_catalog(
+            catalog="general",
+            nsfw=False,
+            content={
+                "Burger": {
+                    "name": "Burger",
+                    "type": "text",
+                    "product": "\ud83c\udf54",
+                    "price": 5.6,
+                    "quantity": 25,
+                    "permanent": False,
+                    "nsfw": False,
+                }
+            },
+            mode="c",
+        )
     core.logger.info("Checking Servers")
     async for guild in bot.fetch_guilds(limit=None):
         guild = bot.get_guild(guild.id)
@@ -67,30 +91,80 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx, e):
     core.logger.error(str(e))
-    core.logger.debug(''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+    core.logger.debug(
+        "".join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))
+    )
     try:
         e.original
     except:
         if isinstance(e, commands.CommandNotFound):
             await ctx.message.add_reaction("⁉")
         elif isinstance(e, commands.CommandOnCooldown):
-            await ctx.send(embed=discord.Embed(title="You're on Cooldown!",  description=f"Try again in **{humanize.naturaldelta(e.retry_after)}**", color=0xff0000))
+            await ctx.send(
+                embed=discord.Embed(
+                    title="You're on Cooldown!",
+                    description=f"Try again in **{humanize.naturaldelta(e.retry_after)}**",
+                    color=0xFF0000,
+                )
+            )
         elif isinstance(e, commands.NSFWChannelRequired):
-            await ctx.send(embed=discord.Embed(title="This channel is not marked as NSFW",  description="Do this command in a NSFW channel or DMs.", color=0xff0000))
+            await ctx.send(
+                embed=discord.Embed(
+                    title="This channel is not marked as NSFW",
+                    description="Do this command in a NSFW channel or DMs.",
+                    color=0xFF0000,
+                )
+            )
         else:
             if core.debug_mode:
-                await ctx.send(embed=discord.Embed(title="Error:",  description='```{error}```'.format(error=''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)), color=0xff0000)))
+                await ctx.send(
+                    embed=discord.Embed(
+                        title="Error:",
+                        description="```{error}```".format(
+                            error="".join(
+                                traceback.format_exception(
+                                    etype=type(e), value=e, tb=e.__traceback__
+                                )
+                            ),
+                            color=0xFF0000,
+                        ),
+                    )
+                )
             else:
-                await ctx.send(embed=discord.Embed(title="Error:",  description=str(e), color=0xff0000))
+                await ctx.send(
+                    embed=discord.Embed(
+                        title="Error:", description=str(e), color=0xFF0000
+                    )
+                )
     else:
         if isinstance(e.original, core.exceptions.CommandError):
-            await ctx.send(embed=discord.Embed(title="Error:",  description=str(e.original), color=0xff0000))
+            await ctx.send(
+                embed=discord.Embed(
+                    title="Error:", description=str(e.original), color=0xFF0000
+                )
+            )
         else:
             await core.utils.report_exception(e.original)
             if core.debug_mode:
-                await ctx.send(embed=discord.Embed(title="Error:",  description='```{error}```'.format(error=''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)), color=0xff0000)))
+                await ctx.send(
+                    embed=discord.Embed(
+                        title="Error:",
+                        description="```{error}```".format(
+                            error="".join(
+                                traceback.format_exception(
+                                    etype=type(e), value=e, tb=e.__traceback__
+                                )
+                            ),
+                            color=0xFF0000,
+                        ),
+                    )
+                )
             else:
-                await ctx.send(embed=discord.Embed(title="Error:",  description=str(e), color=0xff0000))
+                await ctx.send(
+                    embed=discord.Embed(
+                        title="Error:", description=str(e), color=0xFF0000
+                    )
+                )
 
 
 @bot.event
@@ -136,11 +210,13 @@ async def on_message(message):
                 json.dump(core.user_currency, f, indent=4)
     if not message.author.id == bot.user.id and not message.author.bot:
         if "@someone" in message.content:
-            await message.channel.send(f"i gotchu, {core.utils.random.choice(message.guild.members).mention}")
+            await message.channel.send(
+                f"i gotchu, {core.utils.random.choice(message.guild.members).mention}"
+            )
         if "SAD!" in message.content:
             await message.add_reaction("😔")
         if "desu wa" in message.content.lower():
-            for char in ['🇩', '🇪', '🇸', '🇺', '<:desuwa:680754352356327433>', '🇼', '🇦']:
+            for char in ["🇩", "🇪", "🇸", "🇺", "<:desuwa:680754352356327433>", "🇼", "🇦"]:
                 await message.add_reaction(char)
         if message.content.startswith("cum"):
             await message.add_reaction("™")
@@ -149,11 +225,13 @@ async def on_message(message):
 @bot.event
 async def on_message_delete(message):
     if str(message.channel.id) in core.nodelete_chans:
-        if message.author.id != 700328866962604112: # poop bot don't like
+        if message.author.id != 700328866962604112:  # poop bot don't like
             try:
                 webhooks = await message.channel.webhooks()
                 if len(webhooks) == 0:
-                    webhook = await message.channel.create_webhook(name=bot.user.name, reason='No Delete.')
+                    webhook = await message.channel.create_webhook(
+                        name=bot.user.name, reason="No Delete."
+                    )
                 else:
                     webhook = webhooks[0]
                 webhook = webhook.url
@@ -170,17 +248,23 @@ async def on_message_delete(message):
         if len(message.mentions) > 0:
             time = dt.datetime.utcnow() - message.created_at
             if time.seconds < 10:
-                await message.channel.send(embed=discord.Embed(title="Ghost ping detected!", description=f"{message.author.mention} ghost pinged {', '.join(map(core.utils.get_mention, message.mentions))}", color=0xff0000))
+                await message.channel.send(
+                    embed=discord.Embed(
+                        title="Ghost ping detected!",
+                        description=f"{message.author.mention} ghost pinged {', '.join(map(core.utils.get_mention, message.mentions))}",
+                        color=0xFF0000,
+                    )
+                )
 
 
 @bot.event
 async def on_raw_bulk_message_delete(event):
     for message in event.cached_messages:
-        if message.author.id != 700328866962604112: # gay farisbot :)
+        if message.author.id != 700328866962604112:  # gay farisbot :)
             try:
                 webhooks = await message.channel.webhooks()
                 if len(webhooks) == 0:
-                    webhook = await message.channel.create_webhook(reason='No Delete.')
+                    webhook = await message.channel.create_webhook(reason="No Delete.")
                 else:
                     webhook = webhooks[0]
                 webhook = webhook.url
