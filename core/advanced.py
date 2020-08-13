@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 14:22:03
 # @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-13 14:54:12
+# @Last Modified time: 2020-08-13 15:01:05
 import asyncio
 import io
 import time
@@ -473,6 +473,7 @@ class Advanced_Commands(commands.Cog):
     @commands.guild_only()
     async def massnick(self, ctx, *, nickname=None):
         if nickname is None:
+            self.massnick.reset_cooldown(ctx)
             raise core.exceptions.CommandError("No nickname or subcommand was given.")
 
         confirmation = BotConfirmation(ctx, 0xFF0000)
