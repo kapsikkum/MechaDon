@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Blakeando
 # @Date:   2020-08-13 14:23:31
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-14 23:16:29
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-10-22 14:25:34
 import asyncio
 import json
 import logging
@@ -12,7 +12,7 @@ import time
 
 import discord
 
-__version_info__ = (2, 10, 8)
+__version_info__ = (2, 10, 9)
 __version__ = ".".join(map(str, __version_info__))
 config = json.load(open("config.json"))
 token = config["token"]

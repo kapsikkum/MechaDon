@@ -1,18 +1,12 @@
 # -*- coding: utf-8 -*-
 # @Author: Blakeando
 # @Date:   2020-08-13 14:22:49
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-14 22:54:12
-import asyncio
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-10-22 12:27:08
 import datetime as dt
 import json
-import logging
-import os
-import sys
-import time
 import traceback
 
-import aiohttp
 import discord
 import humanize
 from discord.ext import commands
@@ -21,7 +15,7 @@ import core
 import core.exceptions
 import core.utils
 from core import admin, advanced, audio, basic, currency, files
-from nsfw import danbooru, nsfw
+from nsfw import nsfw
 
 
 def get_prefix(bot, message):
@@ -34,7 +28,10 @@ def get_prefix(bot, message):
         return commands.when_mentioned_or(core.prefix)(bot, message)
 
 
-bot = commands.AutoShardedBot(command_prefix=get_prefix, help_command=None)
+intents = discord.Intents(messages=True, guilds=True, members=True)
+bot = commands.AutoShardedBot(
+    command_prefix=get_prefix, help_command=None, intents=intents
+)
 
 
 @bot.event
