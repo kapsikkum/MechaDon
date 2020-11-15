@@ -2,7 +2,7 @@ aiofiles
 aiohttp
 aiosqlite
 BeautifulSoup4
-discord.py
+discord.py[voice]
 disputils
 html2text
 humanize
@@ -11,4 +11,5 @@ pillow
 pydub
 python-dateutil
 ujson
-youtube_dl
+youtube-dlc
+lxml

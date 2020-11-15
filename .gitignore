@@ -136,3 +136,6 @@ config.json
 database.db
 bonus.json
 prefixes.json
+ffmpeg.exe
+ffplay.exe
+ffprobe.exe

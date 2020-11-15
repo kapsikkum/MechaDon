@@ -1,24 +1,17 @@
 # -*- coding: utf-8 -*-
 # @Author: Blakeando
 # @Date:   2020-08-13 14:23:48
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-13 14:23:49
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-11-15 16:59:46
 import asyncio
-import io
 import itertools
-import os
 import re
-import sys
-import tempfile
-import traceback
 from functools import partial
 
-import aiofiles
-import aiohttp
 import discord
 from async_timeout import timeout
 from discord.ext import commands
-from youtube_dl import YoutubeDL
+from youtube_dlc import YoutubeDL
 
 import core
 import core.exceptions
@@ -51,8 +44,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.title = data.get("title")
         self.web_url = data.get("webpage_url")
         self.thumbnail = data.get("thumbnail")
-        # YTDL info dicts (data) have other useful information you might want
-        # https://github.com/rg3/youtube-dl/blob/master/README.md
 
     def __getitem__(self, item: str):
         """Allows us to access attributes similar to a dict.
@@ -71,12 +62,15 @@ class YTDLSource(discord.PCMVolumeTransformer):
             # take first item from a playlist
             data = data["entries"][0]
         embed = discord.Embed(
-            title=f'Added {data["title"]} to the Queue.',
-            description=discord.Embed.Empty,
+            title="Song added to queue:",
+            description=f"""**[{data["title"]}]({data["webpage_url"]})**\nRequested by {ctx.author.mention}""",
             color=0xFF0000,
         )
-        embed.set_image(url=data["thumbnail"])
-        await ctx.send(embed=embed)
+        embed.set_thumbnail(url=data["thumbnail"])
+        await ctx.send(
+            embed=embed,
+            delete_after=10,
+        )
 
         if download:
             source = ytdl.prepare_filename(data)
@@ -177,7 +171,7 @@ class MusicPlayer:
             )
             embed = discord.Embed(
                 title=f"Now Playing:",
-                description=f"**{source.title}**\nRequested by `{source.requester}`",
+                description=f"**[{source.title}]({source.web_url})**\nRequested by {source.requester.mention}",
                 color=0xFF0000,
             )
             embed.set_thumbnail(url=source.thumbnail)
@@ -285,16 +279,24 @@ class Audio_Commands(commands.Cog):
             r"(?:/?|[/?]\S+)$",
             re.IGNORECASE,
         )
-        if re.match(regex, search) is not None:
+        if re.match(regex, search):
             if not re.match(
                 "(http[s]?:\/\/)?(www\.youtube\.com\/watch\?v=|youtu\.be\/)[A-Za-z0-9_-]{11}",
                 search,
             ):
-                raise core.exceptions.CommandError("Not supported.")
+                raise core.exceptions.CommandError("Unsupported or invalid link.")
         async with ctx.typing():
             vc = ctx.voice_client
             if not vc:
                 await ctx.invoke(self.connect_)
+            elif not ctx.author in vc.channel.members:
+                return await ctx.send(
+                    embed=discord.Embed(
+                        title="You are not in this voice channel.",
+                        description=discord.Embed.Empty,
+                        color=0xFF0000,
+                    )
+                )
             player = self.get_player(ctx)
             source = await YTDLSource.create_source(
                 ctx, search, loop=self.bot.loop, download=True
@@ -306,13 +308,23 @@ class Audio_Commands(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def pause_(self, ctx):
         vc = ctx.voice_client
-        if not vc or not vc.is_playing():
+        if not ctx.author in vc.channel.members:
+            return await ctx.send(
+                embed=discord.Embed(
+                    title="You are not in this voice channel.",
+                    description=discord.Embed.Empty,
+                    color=0xFF0000,
+                ),
+                delete_after=10,
+            )
+        elif not vc or not vc.is_playing():
             return await ctx.send(
                 embed=discord.Embed(
                     title="Nothing is Playing.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                )
+                ),
+                delete_after=10,
             )
         elif vc.is_paused():
             return
@@ -323,7 +335,8 @@ class Audio_Commands(commands.Cog):
                 title=f"{ctx.author} Paused the song!",
                 description=discord.Embed.Empty,
                 color=0xFF0000,
-            )
+            ),
+            delete_after=10,
         )
 
     @commands.command(name="resume", description="Resume the currently paused song.")
@@ -331,13 +344,23 @@ class Audio_Commands(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def resume_(self, ctx):
         vc = ctx.voice_client
-        if not vc or not vc.is_connected():
+        if not ctx.author in vc.channel.members:
+            return await ctx.send(
+                embed=discord.Embed(
+                    title="You are not in this voice channel.",
+                    description=discord.Embed.Empty,
+                    color=0xFF0000,
+                ),
+                delete_after=10,
+            )
+        elif not vc or not vc.is_connected():
             return await ctx.send(
                 embed=discord.Embed(
                     title="Nothing is Playing.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                )
+                ),
+                delete_after=10,
             )
         elif not vc.is_paused():
             return
@@ -347,7 +370,8 @@ class Audio_Commands(commands.Cog):
                 title=f"{ctx.author} Resumed the song!",
                 description=discord.Embed.Empty,
                 color=0xFF0000,
-            )
+            ),
+            delete_after=10,
         )
 
     @commands.command(
@@ -357,13 +381,23 @@ class Audio_Commands(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def skip_(self, ctx):
         vc = ctx.voice_client
-        if not vc or not vc.is_connected():
+        if not ctx.author in vc.channel.members:
+            return await ctx.send(
+                embed=discord.Embed(
+                    title="You are not in this voice channel.",
+                    description=discord.Embed.Empty,
+                    color=0xFF0000,
+                ),
+                delete_after=10,
+            )
+        elif not vc or not vc.is_connected():
             return await ctx.send(
                 embed=discord.Embed(
                     title="Nothing is Playing.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                )
+                ),
+                delete_after=10,
             )
         if vc.is_paused():
             pass
@@ -375,7 +409,8 @@ class Audio_Commands(commands.Cog):
                 title=f"{ctx.author} Skipped the song!",
                 description=discord.Embed.Empty,
                 color=0xFF0000,
-            )
+            ),
+            delete_after=10,
         )
 
     @commands.command(
@@ -387,13 +422,23 @@ class Audio_Commands(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def queue_info(self, ctx):
         vc = ctx.voice_client
-        if not vc or not vc.is_connected():
+        if not ctx.author in vc.channel.members:
+            return await ctx.send(
+                embed=discord.Embed(
+                    title="You are not in this voice channel.",
+                    description=discord.Embed.Empty,
+                    color=0xFF0000,
+                ),
+                delete_after=10,
+            )
+        elif not vc or not vc.is_connected():
             return await ctx.send(
                 embed=discord.Embed(
                     title="Not connected to a voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                )
+                ),
+                delete_after=10,
             )
         player = self.get_player(ctx)
         if player.queue.empty():
@@ -402,10 +447,11 @@ class Audio_Commands(commands.Cog):
                     title="There are no more songs.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                )
+                ),
+                delete_after=10,
             )
         upcoming = list(itertools.islice(player.queue._queue, 0, 5))
-        fmt = "\n".join(f'**`{_["title"]}`**' for _ in upcoming)
+        fmt = "\n".join(f'**[{_["title"]}]({_["webpage_url"]})**' for _ in upcoming)
         embed = discord.Embed(
             title=f"Upcoming - Next {len(upcoming)}", description=fmt, color=0xFF0000
         )
@@ -421,13 +467,23 @@ class Audio_Commands(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def now_playing_(self, ctx):
         vc = ctx.voice_client
-        if not vc or not vc.is_connected():
+        if not ctx.author in vc.channel.members:
+            return await ctx.send(
+                embed=discord.Embed(
+                    title="You are not in this voice channel.",
+                    description=discord.Embed.Empty,
+                    color=0xFF0000,
+                ),
+                delete_after=10,
+            )
+        elif not vc or not vc.is_connected():
             return await ctx.send(
                 embed=discord.Embed(
                     title="Not connected to a voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                )
+                ),
+                delete_after=10,
             )
         player = self.get_player(ctx)
         if not player.current:
@@ -436,15 +492,25 @@ class Audio_Commands(commands.Cog):
                     title="Nothing is Playing.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                )
+                ),
+                delete_after=10,
             )
         try:
             await player.np.delete()
         except discord.HTTPException:
             pass
+        except AttributeError:
+            return await ctx.send(
+                embed=discord.Embed(
+                    title="Nothing is Playing.",
+                    description=discord.Embed.Empty,
+                    color=0xFF0000,
+                ),
+                delete_after=10,
+            )
         embed = discord.Embed(
             title=f"Now Playing:",
-            description=f"**{vc.source.title}**\nRequested by `{vc.source.requester}`",
+            description=f"**[{vc.source.title}]({vc.source.web_url})**\nRequested by {vc.source.requester.mention}",
             color=0xFF0000,
         )
         embed.set_thumbnail(url=vc.source.thumbnail)
@@ -460,13 +526,23 @@ class Audio_Commands(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def change_volume(self, ctx, *, vol: float):
         vc = ctx.voice_client
-        if not vc or not vc.is_connected():
+        if not ctx.author in vc.channel.members:
+            return await ctx.send(
+                embed=discord.Embed(
+                    title="You are not in this voice channel.",
+                    description=discord.Embed.Empty,
+                    color=0xFF0000,
+                ),
+                delete_after=10,
+            )
+        elif not vc or not vc.is_connected():
             return await ctx.send(
                 embed=discord.Embed(
                     title="Not connected to a voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                )
+                ),
+                delete_after=10,
             )
         if not 0 < vol < 101:
             return await ctx.send(
@@ -474,7 +550,8 @@ class Audio_Commands(commands.Cog):
                     title="Please enter a value between 1 and 100.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                )
+                ),
+                delete_after=10,
             )
         player = self.get_player(ctx)
         if vc.source:
@@ -485,7 +562,8 @@ class Audio_Commands(commands.Cog):
                 title=f"{ctx.author}: Set the volume to {vol}%",
                 description=discord.Embed.Empty,
                 color=0xFF0000,
-            )
+            ),
+            delete_after=10,
         )
 
     @commands.command(
@@ -497,12 +575,22 @@ class Audio_Commands(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def stop_(self, ctx):
         vc = ctx.voice_client
-        if not vc or not vc.is_connected():
+        if not ctx.author in vc.channel.members:
+            return await ctx.send(
+                embed=discord.Embed(
+                    title="You are not in this voice channel.",
+                    description=discord.Embed.Empty,
+                    color=0xFF0000,
+                ),
+                delete_after=10,
+            )
+        elif not vc or not vc.is_connected():
             return await ctx.send(
                 embed=discord.Embed(
                     title="Nothing is Playing.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                )
+                ),
+                delete_after=10,
             )
         await self.cleanup(ctx.guild)

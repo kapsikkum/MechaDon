@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 14:22:49
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-10-22 12:27:08
+# @Last Modified time: 2020-11-15 23:13:13
 import datetime as dt
 import json
 import traceback
@@ -28,9 +28,10 @@ def get_prefix(bot, message):
         return commands.when_mentioned_or(core.prefix)(bot, message)
 
 
-intents = discord.Intents(messages=True, guilds=True, members=True)
 bot = commands.AutoShardedBot(
-    command_prefix=get_prefix, help_command=None, intents=intents
+    command_prefix=get_prefix,
+    help_command=None,
+    intents=discord.Intents(messages=True, guilds=True, members=True),
 )
 
 
@@ -160,7 +161,8 @@ async def on_command_error(ctx, e):
                 await ctx.send(
                     embed=discord.Embed(
                         title="Error:", description=str(e), color=0xFF0000
-                    )
+                    ),
+                    delete_after=20,
                 )
 
 
@@ -235,23 +237,23 @@ async def on_message_delete(message):
                 await core.utils.revive_message(message, webhook)
             except Exception:
                 pass
-    else:
-        try:
-            core.deletions[str(message.channel.id)]
-        except:
-            core.deletions[str(message.channel.id)] = core.utils.ExpireList()
-        core.deletions[str(message.channel.id)].append(message)
+        else:
+            try:
+                core.deletions[str(message.channel.id)]
+            except:
+                core.deletions[str(message.channel.id)] = core.utils.ExpireList()
+            core.deletions[str(message.channel.id)].append(message)
 
-        if len(message.mentions) > 0:
-            time = dt.datetime.utcnow() - message.created_at
-            if time.seconds < 10:
-                await message.channel.send(
-                    embed=discord.Embed(
-                        title="Ghost ping detected!",
-                        description=f"{message.author.mention} ghost pinged {', '.join(map(core.utils.get_mention, message.mentions))}",
-                        color=0xFF0000,
-                    )
+    if len(message.mentions) > 0:
+        time = dt.datetime.utcnow() - message.created_at
+        if time.seconds < 10:
+            await message.channel.send(
+                embed=discord.Embed(
+                    title="Ghost ping detected!",
+                    description=f"{message.author.mention} ghost pinged {', '.join(map(core.utils.get_mention, message.mentions))}",
+                    color=0xFF0000,
                 )
+            )
 
 
 @bot.event
@@ -268,12 +270,12 @@ async def on_raw_bulk_message_delete(event):
                 await core.utils.revive_message(message, webhook)
             except:
                 pass
-    else:
-        try:
-            core.deletions[str(event.channel_id)]
-        except:
-            core.deletions[str(event.channel_id)] = core.utils.ExpireList()
-        core.deletions[str(event.channel_id)].append(message)
+        else:
+            try:
+                core.deletions[str(event.channel_id)]
+            except:
+                core.deletions[str(event.channel_id)] = core.utils.ExpireList()
+            core.deletions[str(event.channel_id)].append(message)
 
 
 @bot.event
@@ -281,6 +283,12 @@ async def on_message_edit(before, after):
     if str(after.channel.id) in core.nodelete_chans:
         if after.flags.value == 4:
             await after.edit(flags=0)
+
+
+@bot.event
+async def on_command_completion(ctx):
+    if ctx.author.id == core.owner_id:
+        ctx.command.reset_cooldown(ctx)
 
 
 bot.add_cog(basic.Basic_Commands(bot))
