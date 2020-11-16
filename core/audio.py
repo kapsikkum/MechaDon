@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 14:23:48
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-11-15 16:59:46
+# @Last Modified time: 2020-11-16 16:02:44
 import asyncio
 import itertools
 import re
@@ -67,10 +67,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             color=0xFF0000,
         )
         embed.set_thumbnail(url=data["thumbnail"])
-        await ctx.send(
-            embed=embed,
-            delete_after=10,
-        )
+        await ctx.send(embed=embed)
 
         if download:
             source = ytdl.prepare_filename(data)
@@ -257,8 +254,7 @@ class Audio_Commands(commands.Cog):
                 title=f"Connected to: {channel}",
                 description=discord.Embed.Empty,
                 color=0xFF0000,
-            ),
-            delete_after=10,
+            )
         )
 
     @commands.command(
@@ -314,8 +310,7 @@ class Audio_Commands(commands.Cog):
                     title="You are not in this voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         elif not vc or not vc.is_playing():
             return await ctx.send(
@@ -323,8 +318,7 @@ class Audio_Commands(commands.Cog):
                     title="Nothing is Playing.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         elif vc.is_paused():
             return
@@ -335,8 +329,7 @@ class Audio_Commands(commands.Cog):
                 title=f"{ctx.author} Paused the song!",
                 description=discord.Embed.Empty,
                 color=0xFF0000,
-            ),
-            delete_after=10,
+            )
         )
 
     @commands.command(name="resume", description="Resume the currently paused song.")
@@ -350,8 +343,7 @@ class Audio_Commands(commands.Cog):
                     title="You are not in this voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         elif not vc or not vc.is_connected():
             return await ctx.send(
@@ -359,8 +351,7 @@ class Audio_Commands(commands.Cog):
                     title="Nothing is Playing.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         elif not vc.is_paused():
             return
@@ -370,8 +361,7 @@ class Audio_Commands(commands.Cog):
                 title=f"{ctx.author} Resumed the song!",
                 description=discord.Embed.Empty,
                 color=0xFF0000,
-            ),
-            delete_after=10,
+            )
         )
 
     @commands.command(
@@ -387,8 +377,7 @@ class Audio_Commands(commands.Cog):
                     title="You are not in this voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         elif not vc or not vc.is_connected():
             return await ctx.send(
@@ -396,8 +385,7 @@ class Audio_Commands(commands.Cog):
                     title="Nothing is Playing.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         if vc.is_paused():
             pass
@@ -409,8 +397,7 @@ class Audio_Commands(commands.Cog):
                 title=f"{ctx.author} Skipped the song!",
                 description=discord.Embed.Empty,
                 color=0xFF0000,
-            ),
-            delete_after=10,
+            )
         )
 
     @commands.command(
@@ -428,8 +415,7 @@ class Audio_Commands(commands.Cog):
                     title="You are not in this voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         elif not vc or not vc.is_connected():
             return await ctx.send(
@@ -437,8 +423,7 @@ class Audio_Commands(commands.Cog):
                     title="Not connected to a voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         player = self.get_player(ctx)
         if player.queue.empty():
@@ -447,8 +432,7 @@ class Audio_Commands(commands.Cog):
                     title="There are no more songs.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         upcoming = list(itertools.islice(player.queue._queue, 0, 5))
         fmt = "\n".join(f'**[{_["title"]}]({_["webpage_url"]})**' for _ in upcoming)
@@ -473,8 +457,7 @@ class Audio_Commands(commands.Cog):
                     title="You are not in this voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         elif not vc or not vc.is_connected():
             return await ctx.send(
@@ -482,8 +465,7 @@ class Audio_Commands(commands.Cog):
                     title="Not connected to a voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         player = self.get_player(ctx)
         if not player.current:
@@ -492,8 +474,7 @@ class Audio_Commands(commands.Cog):
                     title="Nothing is Playing.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         try:
             await player.np.delete()
@@ -505,8 +486,7 @@ class Audio_Commands(commands.Cog):
                     title="Nothing is Playing.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         embed = discord.Embed(
             title=f"Now Playing:",
@@ -532,8 +512,7 @@ class Audio_Commands(commands.Cog):
                     title="You are not in this voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         elif not vc or not vc.is_connected():
             return await ctx.send(
@@ -541,8 +520,7 @@ class Audio_Commands(commands.Cog):
                     title="Not connected to a voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         if not 0 < vol < 101:
             return await ctx.send(
@@ -550,8 +528,7 @@ class Audio_Commands(commands.Cog):
                     title="Please enter a value between 1 and 100.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         player = self.get_player(ctx)
         if vc.source:
@@ -562,8 +539,7 @@ class Audio_Commands(commands.Cog):
                 title=f"{ctx.author}: Set the volume to {vol}%",
                 description=discord.Embed.Empty,
                 color=0xFF0000,
-            ),
-            delete_after=10,
+            )
         )
 
     @commands.command(
@@ -581,8 +557,7 @@ class Audio_Commands(commands.Cog):
                     title="You are not in this voice channel.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         elif not vc or not vc.is_connected():
             return await ctx.send(
@@ -590,7 +565,6 @@ class Audio_Commands(commands.Cog):
                     title="Nothing is Playing.",
                     description=discord.Embed.Empty,
                     color=0xFF0000,
-                ),
-                delete_after=10,
+                )
             )
         await self.cleanup(ctx.guild)

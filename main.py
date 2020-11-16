@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 14:22:49
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-11-15 23:13:13
+# @Last Modified time: 2020-11-17 08:57:35
 import datetime as dt
 import json
 import traceback
@@ -31,7 +31,7 @@ def get_prefix(bot, message):
 bot = commands.AutoShardedBot(
     command_prefix=get_prefix,
     help_command=None,
-    intents=discord.Intents(messages=True, guilds=True, members=True),
+    intents=discord.Intents(messages=True, guilds=True, members=True, presences=True),
 )
 
 

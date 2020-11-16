@@ -7,9 +7,9 @@ disputils
 html2text
 humanize
 inflect
+lxml
 pillow
 pydub
 python-dateutil
 ujson
 youtube-dlc
-lxml
