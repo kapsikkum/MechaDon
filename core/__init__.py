@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 14:23:31
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-11-15 17:32:10
+# @Last Modified time: 2020-11-20 00:48:08
 import asyncio
 import json
 import logging
@@ -12,7 +12,7 @@ import time
 
 import discord
 
-__version_info__ = (2, 11, 0)
+__version_info__ = (2, 11, 1)
 __version__ = ".".join(map(str, __version_info__))
 config = json.load(open("config.json"))
 token = config["token"]

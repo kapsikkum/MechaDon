@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # @Author: Blakeando
 # @Date:   2020-08-13 14:22:03
-# @Last Modified by:   Blakeando
-# @Last Modified time: 2020-08-13 15:01:05
+# @Last Modified by:   kapsikkum
+# @Last Modified time: 2020-11-20 00:31:08
 import asyncio
 import io
+import os
 import time
 import urllib.parse
 from datetime import datetime, timedelta
@@ -13,13 +14,13 @@ from fractions import Fraction
 import aiohttp
 import discord
 import html2text
+import ujson as json
 from discord.ext import commands
-from disputils import BotEmbedPaginator, BotConfirmation
+from disputils import BotConfirmation, BotEmbedPaginator
 
 import core
 import core.exceptions
 import core.utils
-import ujson as json
 
 
 class Advanced_Commands(commands.Cog):
@@ -178,22 +179,58 @@ class Advanced_Commands(commands.Cog):
                             text=message.author.name, icon_url=message.author.avatar_url
                         )
                         await ctx.send(embed=embed)
+
                     for embed in message.embeds:
                         embed.set_footer(
                             text=message.author.name, icon_url=message.author.avatar_url
                         )
                         await ctx.send(embed=embed)
+
                     for attachment in message.attachments:
-                        embed = discord.Embed(
-                            title="Unable to undelete files 😔",
-                            description=f"__**Url:**__ {attachment.url}",
-                            color=0xFF0000,
-                            timestamp=message.created_at,
-                        )
-                        embed.set_footer(
-                            text=message.author.name, icon_url=message.author.avatar_url
-                        )
-                        await ctx.send(embed=embed)
+                        filetype = os.path.splitext(attachment.url)[1]
+                        if filetype in [".png", ".webp", ".jpg", ".jpeg", ".gif"]:
+                            embed = discord.Embed(
+                                title="Deleted Image",
+                                description=discord.Embed.Empty,
+                                color=0xFF0000,
+                                timestamp=message.created_at,
+                            )
+                            embed.set_image(
+                                url=attachment.url.replace(
+                                    "cdn.discordapp.com", "media.discordapp.net"
+                                )
+                            )
+                            embed.set_footer(
+                                text=message.author.name,
+                                icon_url=message.author.avatar_url,
+                            )
+                            await ctx.send(embed=embed)
+
+                        elif filetype in [".webm", ".mp4", ".mov"]:
+                            embed = discord.Embed(
+                                title="Deleted Video",
+                                description=discord.Embed.Empty,
+                                color=0xFF0000,
+                                timestamp=message.created_at,
+                            )
+                            embed.set_footer(
+                                text=message.author.name,
+                                icon_url=message.author.avatar_url,
+                            )
+                            await ctx.send(
+                                attachment.url.replace(
+                                    "cdn.discordapp.com", "media.discordapp.net"
+                                ),
+                                embed=embed,
+                            )
+
+                        else:
+                            await ctx.send(
+                                attachment.url.replace(
+                                    "cdn.discordapp.com", "media.discordapp.net"
+                                ),
+                            )
+
                     try:
                         core.deletions[str(ctx.message.channel.id)].remove(message)
                     except:

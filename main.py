@@ -2,7 +2,7 @@
 # @Author: Blakeando
 # @Date:   2020-08-13 14:22:49
 # @Last Modified by:   kapsikkum
-# @Last Modified time: 2020-11-17 08:57:35
+# @Last Modified time: 2020-11-20 00:45:13
 import datetime as dt
 import json
 import traceback
@@ -208,15 +208,12 @@ async def on_message(message):
             with open("core/bonus.json", mode="w") as f:
                 json.dump(core.user_currency, f, indent=4)
     if not message.author.id == bot.user.id and not message.author.bot:
-        if "@someone" in message.content:
-            await message.channel.send(
-                f"i gotchu, {core.utils.random.choice(message.guild.members).mention}"
-            )
+        # if "@someone" in message.content:
+        #     await message.channel.send(
+        #         f"i gotchu, {core.utils.random.choice(message.guild.members).mention}"
+        #     )
         if "SAD!" in message.content:
             await message.add_reaction("😔")
-        if "desu wa" in message.content.lower():
-            for char in ["🇩", "🇪", "🇸", "🇺", "<:desuwa:680754352356327433>", "🇼", "🇦"]:
-                await message.add_reaction(char)
         if message.content.startswith("cum"):
             await message.add_reaction("™")
 
@@ -224,25 +221,24 @@ async def on_message(message):
 @bot.event
 async def on_message_delete(message):
     if str(message.channel.id) in core.nodelete_chans:
-        if message.author.id != 700328866962604112:  # poop bot don't like
-            try:
-                webhooks = await message.channel.webhooks()
-                if len(webhooks) == 0:
-                    webhook = await message.channel.create_webhook(
-                        name=bot.user.name, reason="No Delete."
-                    )
-                else:
-                    webhook = webhooks[0]
-                webhook = webhook.url
-                await core.utils.revive_message(message, webhook)
-            except Exception:
-                pass
-        else:
-            try:
-                core.deletions[str(message.channel.id)]
-            except:
-                core.deletions[str(message.channel.id)] = core.utils.ExpireList()
-            core.deletions[str(message.channel.id)].append(message)
+        try:
+            webhooks = await message.channel.webhooks()
+            if len(webhooks) == 0:
+                webhook = await message.channel.create_webhook(
+                    name=bot.user.name, reason="No Delete."
+                )
+            else:
+                webhook = webhooks[0]
+            webhook = webhook.url
+            await core.utils.revive_message(message, webhook)
+        except Exception:
+            pass
+    else:
+        try:
+            core.deletions[str(message.channel.id)]
+        except:
+            core.deletions[str(message.channel.id)] = core.utils.ExpireList()
+        core.deletions[str(message.channel.id)].append(message)
 
     if len(message.mentions) > 0:
         time = dt.datetime.utcnow() - message.created_at
@@ -259,17 +255,16 @@ async def on_message_delete(message):
 @bot.event
 async def on_raw_bulk_message_delete(event):
     for message in event.cached_messages:
-        if message.author.id != 700328866962604112:  # gay farisbot :)
-            try:
-                webhooks = await message.channel.webhooks()
-                if len(webhooks) == 0:
-                    webhook = await message.channel.create_webhook(reason="No Delete.")
-                else:
-                    webhook = webhooks[0]
-                webhook = webhook.url
-                await core.utils.revive_message(message, webhook)
-            except:
-                pass
+        try:
+            webhooks = await message.channel.webhooks()
+            if len(webhooks) == 0:
+                webhook = await message.channel.create_webhook(reason="No Delete.")
+            else:
+                webhook = webhooks[0]
+            webhook = webhook.url
+            await core.utils.revive_message(message, webhook)
+        except:
+            pass
         else:
             try:
                 core.deletions[str(event.channel_id)]
